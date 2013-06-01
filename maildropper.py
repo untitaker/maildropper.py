@@ -34,14 +34,21 @@ class Maildropper(object):
                   '\nErrors: {msg.defects}').format(dt_now=now, msg=self.msg))
 
     def _process_flags(self, flags):
-        allowed_flags = 'PRSTDF'
+        allowed_flags = {
+            'passed': 'P',
+            'replied': 'R',
+            'seen': 'S',
+            'trashed':'T',
+            'draft': 'D',
+            'flagged': 'F'
+        }
 
         def inner():
-            for flag, short in [(key, key[0].upper()) for key, value in flags.items() if value]:
-                if short not in allowed_flags:
+            for flag in flags:
+                if flag not in allowed_flags:
                     raise RuntimeError('Flag not allowed: {}'.format(flag))
 
-                yield short
+                yield allowed_flags[flag]
         return sorted(inner())
 
     def drop(self, *folder, **flags):
