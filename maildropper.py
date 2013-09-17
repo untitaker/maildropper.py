@@ -84,3 +84,6 @@ class Maildropper(object):
                 self.log(sub)
         else:
             self.logfile.write('\n[' + self.msg_id + ']  ' + msg)
+
+    def header(self, name):
+        return str(self.msg.get(name, ''))
