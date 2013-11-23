@@ -96,8 +96,10 @@ class Maildropper(object):
         in_reply = self.header('In-Reply-To')
         if not in_reply:
             return False
+        in_reply = in_reply.split('>')[0] + '>'
         if '"' in in_reply:
             self.log('QUOTE IN IN-REPLY HEADER')
+            self.log(in_reply)
             return False
         _imap_rv(self.imap.select('INBOX'))
         res = _imap_rv(self.imap.search(
