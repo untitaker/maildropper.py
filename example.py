@@ -1,7 +1,5 @@
 import maildropper
-base = '/home/foo/users/mailacc/'
-
-m = maildropper.Maildropper()
+m = Maildropper('user', 'pwd', 'example.com')  # IMAP over SSL
 
 # script will exit after m.drop is called
 
@@ -9,6 +7,6 @@ m = maildropper.Maildropper()
 if m.header('Precedence').startswith('list'):
     if 'notifications@github.com' in m.header('From'):
         if 'markus@unterwaditzer.net' in m.header('Cc'):
-            m.drop(base, '.INBOX.ml.github', flagged=True)
-        m.drop(base, '.INBOX.ml.github')
-    m.drop(base, '.INBOX.ml')
+            m.drop('INBOX.ml.github', flagged=True)
+        m.drop('INBOX.ml.github')
+    m.drop('INBOX.ml')
