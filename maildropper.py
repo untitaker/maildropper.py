@@ -29,6 +29,7 @@ def _imap_rv(x):
 
 class Maildropper(object):
     def log(self, msg):
+        msg = str(msg)
         if '\n' in msg:
             for sub in msg.split('\n'):
                 self.log(sub)
@@ -99,9 +100,8 @@ class Maildropper(object):
         in_reply = in_reply.split('>')[0] + '>'
         if '"' in in_reply:
             self.log('QUOTE IN IN-REPLY HEADER')
-            self.log(in_reply)
             return False
-        _imap_rv(self.imap.select('INBOX'))
+        _imap_rv(self.imap.select(folder))
         res = _imap_rv(self.imap.search(
             None,
             'HEADER Message-ID "{}"'.format(in_reply)
