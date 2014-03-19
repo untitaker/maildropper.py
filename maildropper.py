@@ -27,6 +27,10 @@ def _imap_rv(x):
     return x[1]
 
 
+class DeliveredMessage(Exception):
+    pass
+
+
 class Maildropper(object):
     def log(self, msg):
         msg = str(msg)
@@ -51,6 +55,18 @@ class Maildropper(object):
         self.logfile = sys.stdout
         self._init_imap()
         self._init_msg()
+        self._ctx_manager = False
+
+    def __enter__(self):
+        self._ctx_manager = True
+        return self
+
+    def __exit__(self, cls, val, tb):
+        self._ctx_manager = False
+        if cls is DeliveredMessage:
+            return True
+        elif cls is None:
+            raise RuntimeError('Didn\'t deliver message.')
 
     def _init_msg(self):
         self.msg = _parse_message()
@@ -76,20 +92,26 @@ class Maildropper(object):
         return ' '.join(sorted(inner()))
 
     def drop(self, folder, **flags):
-        f = BytesIO()
-        gen = email.generator.BytesGenerator(f)
-        gen.flatten(self.msg)
-        self.log('Writing to {}'.format(folder))
-        _imap_rv(self.imap.select(folder))
-        _imap_rv(self.imap.append(
-            folder,
-            self._process_flags(flags),
-            imaplib.Time2Internaldate(time.time()),
-            f.getvalue()
-        ))
-        self.imap.close()
-        self.imap.logout()
-        sys.exit(0)
+        if not self._ctx_manager:
+            raise RuntimeError('Need to be in context manager.')
+        try:
+            f = BytesIO()
+            gen = email.generator.BytesGenerator(f)
+            gen.flatten(self.msg)
+            self.log('Writing to {}'.format(folder))
+            _imap_rv(self.imap.select(folder))
+            _imap_rv(self.imap.append(
+                folder,
+                self._process_flags(flags),
+                imaplib.Time2Internaldate(time.time()),
+                f.getvalue()
+            ))
+            self.imap.close()
+            self.imap.logout()
+        except Exception:
+            pass
+        else:
+            raise DeliveredMessage()
 
     def has_parent_in(self, folder):
         '''Check if the message this one is a reply to
