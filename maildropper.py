@@ -81,14 +81,14 @@ class Maildropper(object):
 
     @staticmethod
     def _process_flags(flags):
-        allowed_flags = {'flagged', 'seen'}
+        allowed_flags = ('flagged', 'seen', 'answered', 'draft')
 
         def inner():
-            for flag in flags:
+            for flag, value in flags.items():
                 if flag not in allowed_flags:
                     raise RuntimeError('Flag not allowed: {}'.format(flag))
-
-                yield '\\' + flag.title()
+                if value:
+                    yield '\\' + flag.title()
         return ' '.join(sorted(inner()))
 
     def drop(self, folder, **flags):
